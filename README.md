@@ -33,25 +33,32 @@ Bordkartans innehåll: Tid, namn och antal personer. 21 st bord, + möjlighet f�
 ```
 project
 ├── build/
+│       // Här hamnar kompilerade filer.
 ├── public/
-│   │   // Innehåller filer som är tillgängliga av alla.
+│   │   // Innehåller (public & static) filer.
 │   └── index.html
 ├── src/
-│   │   // Innehåller filer som kompileras med browserify,
-│   │   // kompilerade filer läggs i `build/`.
-│   └── app.js
-├── app.js // Huvudfilen, startar serven.
+│   │   // Innehåller (public) filer som kompileras med webpack/babel,
+│   │   // kompilerade filer hamnar i `build/`.
+│   ├── app.js
+│   └── components/
+│       │   // Innehåller filer som inkluderas från `src/`.
+│       └── test.js
+├── server.js // Huvudfilen, startar serven.
 ├── package.json // Innehåller meta-data och dependancies.
+├── gulpfile.js // Gulp skript
+├── .gitignore // Exkluderar filer från git.
+├── .babelrc // Konfiguration för babel.
 └── README.md
 ```
 
 ### Kommandon
 
-Installera dependancies:
-`npm install`
-Kompilera projektet:
-`npm run build`
-Starta servern:
-`node app.js`
-Rensa kompilerade filer:
+Installera dependancies:  
+`npm install`  
+Kompilera projektet:  
+`npm run build` eller `npm run devbuild`  
+Starta servern:  
+`npm start`  
+Rensa kompilerade filer:  
 `npm run clean`
