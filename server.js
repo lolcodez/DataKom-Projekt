@@ -22,7 +22,7 @@ argv.forEach((val) => {
     if (val === '--debug') {
         debug = true;
         console.log('--- in debug mode ---');
-    } else if (val === '--port=') {
+    } else if (val.startsWith('--port=')) {
         port = val.substr('--port='.length);
     } else {
         console.log(`Unknown argument '${val}'.`);
