@@ -17,6 +17,10 @@
         }
     ],
     "private": true,
+    "engines": {
+        "node": "7.9.x || 8 || 9.1.x"
+    },
+    "main": "server.js",
     "repository": {
         "type": "git",
         "url": "https://github.com/AndreasOlofsson/DataKom-Projekt"
@@ -27,7 +31,6 @@
         "clean": "rm -rf build",
         "start": "node server.js"
     },
-    "main": "server.js",
     "dependencies": {
         "express": "^4.16.2",
         "react": "^16.1.0",
