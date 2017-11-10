@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const mine    = require('mime');
 
 const app = express();
 
@@ -30,8 +31,15 @@ argv.forEach((val) => {
     }
 });
 
+app.set('port', (process.env.PORT || port));
+
 app.use('/', express.static('public/index.html'));
 app.use(express.static('public'));
-app.use(express.static('build'));
+app.use(express.static('build'), 
+    (req, res, next) => {
+        res.setHeader('Content-Type', mime.lookup(req.url));
+        next()
+    }
+);
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+app.listen(app.get('port'), () => console.log(`Listening on port ${app.get('port')}`));
