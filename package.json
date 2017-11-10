@@ -24,7 +24,7 @@
     "scripts": {
         "build": "gulp",
         "devbuild": "gulp devbuild",
-        "clean": "rm -rf build/*",
+        "clean": "rm -rf build",
         "start": "node server.js"
     },
     "main": "server.js",
