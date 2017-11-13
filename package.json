@@ -29,8 +29,8 @@
         "build": "gulp",
         "devbuild": "gulp devbuild",
         "clean": "rm -rf build",
-        "start": "node server.js",
-        "postinstall": "npm run build"
+        "start": "node server/app.js",
+        "heroku-postbuild": "npm run build"
     },
     "dependencies": {
         "express": "^4.16.2",
@@ -43,6 +43,8 @@
         "gulp": "^3.9.1",
         "gulp-uglify": "^3.0.0",
         "vinyl-named": "^1.1.0",
-        "webpack-stream": "^4.0.0"
+        "webpack-stream": "^4.0.0",
+        "mongodb": "^2.2.33",
+        "crypto": "^1.0.1"
     }
 }

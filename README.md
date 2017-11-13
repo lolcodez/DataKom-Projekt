@@ -44,11 +44,14 @@ project
 │   └── components/
 │       │   // Innehåller filer som inkluderas från `src/`.
 │       └── test.js
-├── server.js // Huvudfilen, startar serven.
-├── package.json // Innehåller meta-data och dependancies.
-├── gulpfile.js // Gulp skript
-├── .gitignore // Exkluderar filer från git.
-├── .babelrc // Konfiguration för babel.
+├── server/
+│   ├── app.js    // Huvudfilen, startar serven.
+│   ├── db.js     // Interface till databasen.
+│   └── config.js // Innehåller konfigurations-värden. 
+├── package.json  // Innehåller meta-data och dependancies.
+├── gulpfile.js   // Gulp skript
+├── .gitignore    // Exkluderar filer från git.
+├── .babelrc      // Konfiguration för babel.
 └── README.md
 ```
 
