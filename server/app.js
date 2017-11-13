@@ -5,7 +5,7 @@
 const config      = require("./config.js");
 
 const express     = require("express");
-const mime        = require("mime");
+const mime        = require("mime-types");
 const dbInterface = require("./db.js");
 
 // Program veriables
