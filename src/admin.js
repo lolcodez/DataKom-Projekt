@@ -1,20 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Header from "./admin/header"
-import Body from "./admin/body"
+import Body from "./components/admin/body.js"
 
 class Admin extends React.Component {
     render() {
-        return (
-            <div>
-                <Header />
-                <Body />
-            </div>
-        );
+        return null;
     }
 }
 
 ReactDOM.render(
     <Admin />,
-    document.getElementById('root')
+    document.getElementById("root")
 );

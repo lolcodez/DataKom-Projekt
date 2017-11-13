@@ -1,6 +1,6 @@
 'use strict';
 
-import as React from "react";
+import React from "react";
 
 class Body extends React.Component {
     render() {
