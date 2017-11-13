@@ -46,6 +46,6 @@
         "webpack-stream": "^4.0.0",
         "mongodb": "^2.2.33",
         "crypto": "^1.0.1",
-        "mime": "^1.4.1"
+        "mime-types": "^2.1.17"
     }
 }
