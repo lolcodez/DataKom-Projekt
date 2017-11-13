@@ -5,9 +5,8 @@
 const config      = require("./config.js");
 
 const express     = require("express");
-const mine        = require("mime");
+const mime        = require("mime");
 const dbInterface = require("./db.js");
-const cmd         = require("./cmd.js");
 
 // Program veriables
 

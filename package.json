@@ -45,6 +45,7 @@
         "vinyl-named": "^1.1.0",
         "webpack-stream": "^4.0.0",
         "mongodb": "^2.2.33",
-        "crypto": "^1.0.1"
+        "crypto": "^1.0.1",
+        "mime": "^1.4.1"
     }
 }
