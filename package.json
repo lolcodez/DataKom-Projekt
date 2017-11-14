@@ -46,8 +46,7 @@
         "webpack-stream": "^4.0.0",
         "mongodb": "^2.2.33",
         "crypto": "^1.0.1",
-        "mime": "^1.4.1",
-        "websocket": "^1.0.25",
-        "express-ws": "^3.0.0"
+        "mime-types": "^2.1.17",
+        "ws": "^3.3.1"
     }
 }
