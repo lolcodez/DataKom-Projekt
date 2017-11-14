@@ -12,9 +12,11 @@ gulp.task(
             .pipe(named())
             .pipe(webpack({
                 module: {
-                    loaders: [{
-                        loader: "babel-loader"
-                    }]
+                    loaders: [
+                        { test: /\.json$/, loader: "json-loader" },
+                        { test: /^(\.\/|\/)?node_modules\/.*\.js$/, loader: "env-loader" },
+                        { test: /\.jsx?$/, exclude: /^(\.\/|\/)?node_modules\//, loader: "babel-loader" }
+                    ]
                 }
             }))
             .pipe(uglify())
@@ -29,9 +31,10 @@ gulp.task(
             .pipe(named())
             .pipe(webpack({
                 module: {
-                    loaders: [{
-                        loader: "babel-loader"
-                    }]
+                    loaders: [
+                        { test: /\.json$/, loader: "json-loader" },
+                        { test: /\.jsx?$/, exclude: /^(\.\/|\/)?node_modules\//, loader: "babel-loader" }
+                    ]
                 }
             }))
             .pipe(gulp.dest("build/"))

@@ -1,14 +1,16 @@
 'use strict';
 
-// INcludes
+// Includes
 
 const config      = require("./config.js");
 
 const express     = require("express");
+const http        = require("http");
 const mime        = require("mime-types");
+
 const dbInterface = require("./db.js");
 
-// Program veriables
+// Program variables
 
 let debug = false;
 let port  = 80;
@@ -41,7 +43,6 @@ argv.forEach((val) => {
 // Main section
 
 const app = express();
-const websocketWs = require('express-ws')(app);
 
 let db;
 
@@ -55,13 +56,9 @@ app.use(express.static("build"),
         next()
     }
 );
-app.ws('/get-availability', () => {
-    
-});
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
-    // application specific logging, throwing an error, or other logic here
 });
 
 (async function() {
@@ -73,6 +70,10 @@ process.on('unhandledRejection', (reason, p) => {
     }
 
     console.log("DB connected");
+    
+    const server = http.createServer(app);
 
-    app.listen(app.get("port"), () => console.log(`Listening on port ${app.get("port")}`));
+    require('./ws.js')(server, db);
+    
+    server.listen(app.get("port"), () => console.log(`Listening on port ${app.get("port")}`));
 })();
