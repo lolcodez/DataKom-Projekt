@@ -1,14 +1,14 @@
-const config = require('./config.js');
+const config = require("./config.js");
 
-const mongodb = require('mongodb').MongoClient;
-const crypto = require('crypto');
+const mongodb = require("mongodb").MongoClient;
+const crypto = require("crypto");
 
 module.exports = async function() {
     const db = await mongodb.connect(config.dbURL);
 
-    let bookingsCollection = await db.createCollection('bookings');
+    let bookingsCollection = await db.createCollection("bookings");
 
-    let adminCollection = await db.createCollection('admins');
+    let adminCollection = await db.createCollection("admins");
 
     async function addAdmin(name, password) {
         return await adminCollection
@@ -26,9 +26,9 @@ module.exports = async function() {
         const salt = crypto.randomBytes(32); // 128-bits
 
         const passwordDigest = crypto
-            .createHmac('sha256', salt)
+            .createHmac("sha256", salt)
             .update(password)
-            .digest('hex');
+            .digest("hex");
 
         return await adminCollection.updateOne(
             {
@@ -44,18 +44,18 @@ module.exports = async function() {
     }
     async function removeBooking(id) {
         var myquery = { _id: ObjectID(id) };
-        db.collection('bookings').remove(myquery);
+        db.collection("bookings").remove(myquery);
         //om status på den dagen är full behöver detta ändras
     }
 
     async function changeBooking(id, type, value) {
         var myquery = { _id: ObjectID(id) };
         var newvalues = { $set: { type: value } };
-        db.collection('bookings').updateOne(myquery, newvalues);
+        db.collection("bookings").updateOne(myquery, newvalues);
     }
 
     async function getBookingsOnDate(date_) {
-        db.collection('bookings').find({ date: date_ });
+        db.collection("bookings").find({ date: date_ });
     }
 
     async function getStatus(date_) {
@@ -67,7 +67,7 @@ module.exports = async function() {
     }
 
     async function addBooking(name, email, time, date, numPeople, text) {
-        return await db.collection('bookings').insertOne({
+        return await db.collection("bookings").insertOne({
             name: name,
             email: email,
             time: time,
@@ -75,7 +75,7 @@ module.exports = async function() {
             number: numPeople,
             text: text,
             submitted: new Date().getTime(),
-            status: 'pending',
+            status: "pending",
             emails: [],
         });
     }
