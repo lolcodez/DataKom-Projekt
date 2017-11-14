@@ -8,7 +8,7 @@ const named   = require("vinyl-named");
 gulp.task(
     "build",
     () => {
-        gulp.src("src/*.js")
+        gulp.src(["src/*.js", "src/*.jsx"])
             .pipe(named())
             .pipe(webpack({
                 module: {
@@ -27,7 +27,7 @@ gulp.task(
 gulp.task(
     "devbuild",
     () => {
-        gulp.src("src/*.js")
+        gulp.src(["src/*.js", "src/*.jsx"])
             .pipe(named())
             .pipe(webpack({
                 module: {

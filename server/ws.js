@@ -9,11 +9,31 @@ module.exports = (server, db) => {
 
     async function getAvailable(ws, msg) {
         if (msg["date"]) {
+            let date = msg["date"];
+            
+            if (typeof date !== "string") {
+                throw "Bad Request (\"date\" is not a string)";
+            }
+            
+            date = date.split("-");
+            
+            if (date.length !== 3) {
+                throw "Bad Request (\"date\" must be in the format \"YYYY-MM-DD\")";
+            }
+
+            let available;
+            
+            try {
+                available = await db.dayAvailable(new Date(Date.UTC(date[0], date[1] - 1, date[2])));
+            } catch (e) {
+                throw "Server Error (DB access failed)"
+            }
+            
             return {
-                "msg": "test"
+                "available": available
             };
         } else {
-            throw "bad request";
+            throw "bad request (\"date\" missing)";
         }
     }
 
@@ -23,43 +43,48 @@ module.exports = (server, db) => {
                 "msg": "test"
             };
         } else {
-            throw "bad request";
+            throw "bad request (\"booking\" missing)";
         }
     }
     
     wss.on('connection', (ws, req) => {
         ws.on('message', (msg) => {
-            try {
+            (async function() {
+                let err;
+                
                 try {
                     msg = JSON.parse(msg);
-                } catch (_) {
-                    throw "invalid JSON";
-                }
-                
-                const func = {
-                    getAvailable: getAvailable,
-                    addBooking: addBooking
-                }[msg["request"]];
-                
-                if (func) {
-                    func(ws, msg)
-                        .then((result) => {
+
+                    const func = {
+                        getAvailable: getAvailable,
+                        addBooking: addBooking
+                    }[msg["request"]];
+                    
+                    if (func) {
+                        try {
+                            let result = await func(ws, msg);
+
                             result["result"] = "ok";
                             result["id"] = msg["id"];
+
                             sendJSON(ws, result);
-                        })
-                        .catch((err) => {
-                            throw err;
-                        })
-                } else {
-                    throw "bad request";
+                        } catch (e) {
+                            err = e;
+                        }
+                    } else {
+                        err = "Bad Request (function not found)";
+                    }
+                } catch (_) {
+                    err = "Invalid JSON";
                 }
-            } catch (e) {
-                sendJSON(ws, {
-                    result: e,
-                    id: msg["id"]
-                });
-            }
+                
+                if (err) {
+                    sendJSON(ws, {
+                        result: err,
+                        id: msg["id"]
+                    });
+                }
+            })();
         });
     });
 };
