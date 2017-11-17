@@ -41,7 +41,6 @@ argv.forEach((val) => {
 // Main section
 
 const app = express();
-const websocketWs = require('express-ws')(app);
 
 let db;
 
@@ -55,9 +54,6 @@ app.use(express.static("build"),
         next()
     }
 );
-app.ws('/get-availability', () => {
-    
-});
 
 process.on('unhandledRejection', (reason, p) => {
     console.log('Unhandled Rejection at: Promise', p, 'reason:', reason);
