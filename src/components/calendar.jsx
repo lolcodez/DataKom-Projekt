@@ -2,96 +2,178 @@
 
 import * as React from "react";
 
-class CalendarDay extends React.Component {
-    constructor(props) {
-        super(props);
-        
-        this.state = {
-            date: props.date
-        }
-    }
-    
-    render() {
-        return (
-            <th>{ this.state.date.getDate() }</th>
-        );
-    }
-}
-
-class CalendarRow extends React.Component {
-    constructor(props) {
-        super(props);
-        
-        this.state = {
-            date: new Date(props.date),
-            elements: [...new Array(7)].map(
-                (_, day) => {
-                    return <CalendarDay key={day} date={ props.date.add({ date: day }) } />
-                }
-            )
-        }
-    }
-    
-    render() {
-        return (
-            <tr key={this.state.week}>{ this.state.elements }</tr>
-        );
-    }
-}
+import { Locale } from "../lib/locale.js";
 
 class Calendar extends React.Component {
     constructor(props) {
         super(props);
         
-        let year = props.date.getFullYear();
-        let month = props.date.getMonth();
-
-        let firstOfMonth = new Date(Date.UTC(year, month));
-        let firstWeekday = (firstOfMonth.getDay() + 6) % 7;
-        let startOfCalendar = new Date(firstOfMonth).add({ date: -firstWeekday });
+        let startOfWeek = Calendar.getStartOfWeek();
+        
+        if (this.props.startOfWeek) {
+            startOfWeek = {
+                "mon":  0, "monday":    0, "0":   0,
+                "sun": -1, "sunday":   -1, "-1": -1,
+                "sat": -2, "saturday": -2, "-2": -2
+            }[this.props.startOfWeek.toLowerCase()] || startOfWeek;
+            if (typeof nextProps === "number") {
+                startOfWeek = nextProps.startOfWeek;
+            }
+        }
         
         this.state = {
-            date: firstOfMonth,
-            rows: [...new Array(6)].map(
-                (_, week) => {
-                    return <CalendarRow key={week} date={ startOfCalendar.add({ date: week*7 }) } />
-                }
-            )
+            year: props.year,
+            month: props.month,
+            locale: props.locale,
+            startOfWeek: startOfWeek
         };
     }
     
+    componentWillReceiveProps(nextProps) {
+        let startOfWeek = this.state.startOfWeek;
+
+        if (nextProps.startOfWeek) {
+            if (nextProps.startOfWeek != this.state.startOfWeek) {
+                startOfWeek = {
+                    "mon":  0, "monday":    0, "0":   0,
+                    "sun": -1, "sunday":   -1, "-1": -1,
+                    "sat": -2, "saturday": -2, "-2": -2
+                }[nextProps.startOfWeek.toLowerCase()];
+                if (startOfWeek === undefined) {
+                    startOfWeek = this.state.startOfWeek;
+                }
+                if (typeof nextProps === "number") {
+                    startOfWeek = nextProps.startOfWeek;
+                }
+            }
+        } else if (nextProps.locale) {
+            startOfWeek = Calendar.getStartOfWeek(nextProps.locale);
+        }
+        
+        this.setState({
+            year: nextProps.year || this.state.year,
+            month: nextProps.month || this.state.month,
+            locale: nextProps.locale || this.state.locale,
+            startOfWeek: startOfWeek
+        });
+        
+        return true;
+    }
+    
     render() {
+        let viewStartDate = new Date(this.state.year, this.state.month-1);
+        viewStartDate.setDate(
+            viewStartDate.getDate() - viewStartDate.getDay() + 1 + this.state.startOfWeek);
+
+        const current = new Date(Date.now());
+        
         return (
             <table className="calendar">
-                <tbody>{ this.state.rows }</tbody>
+                <thead className="calendar-header">
+                    <tr>
+                        <th>&#x25C0;</th>
+                        <th className="calendar-month-label" colSpan={5}>
+                            {
+                                Calendar.getMonthName(this.state.month - 1, this.state.locale)
+                            }
+                        </th>
+                        <th>&#x25B6;</th>
+                    </tr>
+                </thead>
+                <tbody className="calendar-body">
+                {
+                    [...new Array(6)].map(
+                        (_, index) => {
+                            let weekStartDate = new Date(viewStartDate);
+                            weekStartDate.setDate(weekStartDate.getDate() + 7*index);
+                            return renderRow(weekStartDate);
+                        }
+                    )
+                }
+                </tbody>
             </table>
         );
+        
+        function renderRow(startDate) {
+            return (
+                <tr key={ startDate } className="calendar-week">
+                    {
+                        [...new Array(7)].map(
+                            (_, index) => {
+                                const date = new Date(startDate);
+                                date.setDate(date.getDate() + index);
+                                return renderDate(date);
+                            }
+                        )
+                    }
+                </tr>
+            );
+        }
+        
+        function renderDate(date) {
+            const isCurrent =
+                current.getFullYear() === date.getFullYear() &&
+                current.getMonth() === date.getMonth() &&
+                current.getDate() === date.getDate();
+
+            const isCurrentMonth =
+                current.getFullYear() === date.getFullYear() &&
+                current.getMonth() === date.getMonth();
+
+            return (
+                <td key={ date } className={
+                    `calendar-day${
+                        isCurrent ? " calendar-day-current" : ""
+                        }${
+                        isCurrentMonth ? "" : " calendar-day-not-current-month"
+                        }`
+                }>{ date.getDate() }</td>
+            );
+        }
+    }
+    
+    static getStartOfWeek(locale = Locale.getDefaultLocale()) {
+        if (locale.getTerritory() === "US") {
+            return -1;
+        }
+        
+        return 0;
+    }
+    
+    static getMonthName(month, locale = Locale.getDefaultLocale()) {
+        switch (locale.getLanguage()) {
+            case 'sv':
+                return [
+                    "Januari",
+                    "Februari",
+                    "Mars",
+                    "April",
+                    "Maj",
+                    "Juni",
+                    "juli",
+                    "Augusti",
+                    "September",
+                    "Oktober",
+                    "November",
+                    "December"
+                ];
+        }
+        
+        return [
+            "January",
+            "February",
+            "March",
+            "April",
+            "May",
+            "June",
+            "July",
+            "August",
+            "September",
+            "October",
+            "November",
+            "December"
+        ][month];
     }
 }
-
-Date.prototype.add = function(arg, months, date, hours, minutes, seconds, millis) {
-    let result = new Date(this);
-
-    if (typeof arg === "object") {
-        if (arg["year"]) { result.setFullYear(result.getFullYear() + arg["year"]); }
-        if (arg["month"]) { result.setFullYear(result.getFullYear() + arg["month"]); }
-        if (arg["date"]) { result.setDate(result.getDate() + arg["date"]); }
-        if (arg["hours"]) { result.setHours(result.getHours() + arg["hours"]); }
-        if (arg["minutes"]) { result.setMinutes(result.getMinutes() + arg["minutes"]); }
-        if (arg["seconds"]) { result.setSeconds(result.getSeconds() + arg["seconds"]); }
-        if (arg["millis"]) { result.setMilliseconds(result.getMilliseconds() + arg["millis"]); }
-    } else if (typeof arg === "number") {
-        result.setFullYear(result.getFullYear() + arg);
-
-        if (typeof months  === "number") { result.setMonth(result.getMonth() + months); }
-        if (typeof date    === "number") { result.setDate(result.getDate() + date); }
-        if (typeof hours   === "number") { result.setHours(result.getHours() + hours); }
-        if (typeof minutes === "number") { result.setMinutes(result.getMinutes() + minutes); }
-        if (typeof seconds === "number") { result.setSeconds(result.getSeconds() + seconds); }
-        if (typeof millis  === "number") { result.setMilliseconds(result.getMilliseconds() + millis); }
-    }
-
-    return result;
-};
 
 export { Calendar };

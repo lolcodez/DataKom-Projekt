@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { HelloWorld } from "./components/test.js";
+import { HelloWorld } from "./components/test.jsx";
 
 class App extends React.Component {
     render() {
