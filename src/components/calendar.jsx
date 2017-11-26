@@ -296,6 +296,8 @@ class Calendar extends React.Component {
         
         setStatusColor(color) {
             this.statusColor = color;
+            
+            this.calendar.forceUpdate()
         }
         
         getStatusColor() {
@@ -305,8 +307,7 @@ class Calendar extends React.Component {
         getStyle() {
             if (this.statusColor) {
                 return {
-                    textDecoration: "underline",
-                    textDecorationColor: this.statusColor
+                    color: this.statusColor
                 };
             }
             

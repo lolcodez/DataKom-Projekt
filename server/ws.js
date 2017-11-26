@@ -79,10 +79,15 @@ module.exports = (server, db) => {
                 }
                 
                 if (err) {
-                    sendJSON(ws, {
-                        result: err,
-                        id: msg["id"]
-                    });
+                    try {
+                        sendJSON(ws, {
+                            result: err,
+                            id: msg["id"]
+                        });
+                    } catch (e) {
+                        console.error("Failed to send error message: ");
+                        console.error(err);
+                    }
                 }
             })();
         });

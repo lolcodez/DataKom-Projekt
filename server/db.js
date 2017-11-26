@@ -102,7 +102,8 @@ module.exports = async function() {
         debug: {
             db: db,
             bookings: bookingsCollection,
-            admins: adminCollection
+            admins: adminCollection,
+            days: daysCollection
         }
     };
 };

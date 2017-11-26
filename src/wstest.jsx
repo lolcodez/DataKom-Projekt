@@ -10,7 +10,9 @@ import { WSInterface } from "./lib/wsInterface";
 
 const ws = new WSInterface();
 
-Locale.setDefaultLocale(new Locale("sv", "SE"));
+if (!Locale.isDefaultLocaleSet()) {
+    Locale.setDefaultLocale(new Locale("sv", "SE"));
+}
 
 class App extends React.Component {
     constructor(props) {
@@ -34,7 +36,7 @@ class App extends React.Component {
                           },
                           (msg) => {
                               if (msg["available"] === false) {
-                                  calendarDate.setStatusColor("#FFA0A0");
+                                  calendarDate.setStatusColor("#FF8080");
                               }
                           });
                       } } />
@@ -48,3 +50,5 @@ ReactDOM.render(
     app,
     document.getElementById('root')
 );
+
+window.Locale = Locale;
