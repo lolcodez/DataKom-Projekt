@@ -25,7 +25,8 @@ class Calendar extends React.Component {
             year: props.year,
             month: props.month,
             locale: props.locale,
-            startOfWeek: startOfWeek
+            startOfWeek: startOfWeek,
+            calendarDates: {}
         };
     }
     
@@ -51,9 +52,9 @@ class Calendar extends React.Component {
         }
         
         this.setState({
-            year: nextProps.year || this.state.year,
-            month: nextProps.month || this.state.month,
-            locale: nextProps.locale || this.state.locale,
+            year: nextProps.year,
+            month: nextProps.month,
+            locale: nextProps.locale,
             startOfWeek: startOfWeek
         });
         
@@ -63,21 +64,45 @@ class Calendar extends React.Component {
     render() {
         let viewStartDate = new Date(this.state.year, this.state.month-1);
         viewStartDate.setDate(
-            viewStartDate.getDate() - viewStartDate.getDay() + 1 + this.state.startOfWeek);
+            (1
+                - (viewStartDate.getDay() + 6 - this.state.startOfWeek) % 7
+                - 7) % 7);
 
         const current = new Date(Date.now());
+        current.setHours(0);
+        current.setMinutes(0);
+        current.setSeconds(0);
+        current.setMilliseconds(0);
+        
+        const selectedDate = this.state.selectedDate;
         
         return (
             <table className="calendar">
                 <thead className="calendar-header">
                     <tr>
-                        <th>&#x25C0;</th>
+                        <th onClick={ this.prevMonth.bind(this) }>&#x25C0;</th>
                         <th className="calendar-month-label" colSpan={5}>
-                            {
-                                Calendar.getMonthName(this.state.month - 1, this.state.locale)
-                            }
+                        {
+                            `${Calendar.getMonthName(this.state.month - 1, this.state.locale)}
+                            ${current.getFullYear() !== this.state.year ? ` ${this.state.year}` : ""}`
+                        }
                         </th>
-                        <th>&#x25B6;</th>
+                        <th onClick={ this.nextMonth.bind(this) }>&#x25B6;</th>
+                    </tr>
+                    <tr>
+                    {
+                        [...new Array(7)].map(
+                            (_, index) => {
+                                return (
+                                    <th key={index}>
+                                    {
+                                        Calendar.getShortDayName(index, this.state.locale)
+                                    }
+                                    </th>
+                                );
+                            }
+                        )
+                    }
                     </tr>
                 </thead>
                 <tbody className="calendar-body">
@@ -86,7 +111,7 @@ class Calendar extends React.Component {
                         (_, index) => {
                             let weekStartDate = new Date(viewStartDate);
                             weekStartDate.setDate(weekStartDate.getDate() + 7*index);
-                            return renderRow(weekStartDate);
+                            return renderRow.bind(this)(weekStartDate);
                         }
                     )
                 }
@@ -97,38 +122,95 @@ class Calendar extends React.Component {
         function renderRow(startDate) {
             return (
                 <tr key={ startDate } className="calendar-week">
-                    {
-                        [...new Array(7)].map(
-                            (_, index) => {
-                                const date = new Date(startDate);
-                                date.setDate(date.getDate() + index);
-                                return renderDate(date);
-                            }
-                        )
-                    }
+                {
+                    [...new Array(7)].map(
+                        (_, index) => {
+                            const date = new Date(startDate);
+                            date.setDate(date.getDate() + index);
+                            return renderDate.bind(this)(date);
+                        }
+                    )
+                }
                 </tr>
             );
         }
         
         function renderDate(date) {
-            const isCurrent =
-                current.getFullYear() === date.getFullYear() &&
-                current.getMonth() === date.getMonth() &&
-                current.getDate() === date.getDate();
+            const isCurrent = date.getTime() === current.getTime();
 
             const isCurrentMonth =
-                current.getFullYear() === date.getFullYear() &&
-                current.getMonth() === date.getMonth();
-
+                this.state.year === date.getFullYear() &&
+                this.state.month - 1 === date.getMonth();
+            
+            const isSelected =
+                selectedDate && selectedDate.getTime() === date.getTime();
+            
+            let calendarDate = this.state.calendarDates[date.getTime()];
+            
+            if (!calendarDate) {
+                if (this.props.transformDate) {
+                    calendarDate = new Calendar.CalendarDate(this, date);
+                    this.props.transformDate(calendarDate);
+                    this.state.calendarDates[date.getTime()] = calendarDate;
+                }
+            }
+            
             return (
-                <td key={ date } className={
-                    `calendar-day${
-                        isCurrent ? " calendar-day-current" : ""
-                        }${
-                        isCurrentMonth ? "" : " calendar-day-not-current-month"
-                        }`
-                }>{ date.getDate() }</td>
+                <td key={date}
+                    className={
+                        `calendar-day${
+                            isCurrent ? " calendar-day-current-frame" : ""
+                            }${
+                            isSelected ? " calendar-day-selected-frame" : ""
+                            }${
+                            isCurrentMonth ? "" : " calendar-day-not-current-month"
+                            }`
+                    }
+                    onClick={
+                        (event) => this.daySelected.bind(this)(event, date)
+                    }
+                    style={ calendarDate.getStyle() }>
+                    {
+                        isCurrent || isSelected
+                            ? (
+                                <div className={
+                                    `${
+                                        isCurrent ? " calendar-day-current" : ""
+                                    }${
+                                        isSelected ? " calendar-day-selected" : ""
+                                    }`
+                                }>
+                                    { date.getDate() }
+                                </div>
+                            )
+                            : date.getDate()
+                    }
+                </td>
             );
+        }
+    }
+    
+    prevMonth() {
+        this.setState({
+            year: this.state.year - (this.state.month === 1 ? 1 : 0),
+            month: this.state.month === 1 ? 12 : this.state.month - 1
+        });
+    }
+
+    nextMonth() {
+        this.setState({
+            year: this.state.year + (this.state.month === 12 ? 1 : 0),
+            month: this.state.month === 12 ? 1 : this.state.month + 1
+        });
+    }
+    
+    daySelected(event, date) {
+        this.setState({
+            selectedDate: date
+        });
+        
+        if (this.props.onDaySelected) {
+            this.props.onDaySelected(date);
         }
     }
     
@@ -150,13 +232,13 @@ class Calendar extends React.Component {
                     "April",
                     "Maj",
                     "Juni",
-                    "juli",
+                    "Juli",
                     "Augusti",
                     "September",
                     "Oktober",
                     "November",
                     "December"
-                ];
+                ][month];
         }
         
         return [
@@ -174,6 +256,63 @@ class Calendar extends React.Component {
             "December"
         ][month];
     }
+
+    static getShortDayName(day, locale = Locale.getDefaultLocale()) {
+        switch (locale.getLanguage()) {
+            case 'sv':
+                return [
+                    "Må", "Ti", "On", "To", "Fr", "Lö", "Sö"
+                ][day];
+        }
+
+        return [
+            "Mo", "Ti", "We", "Th", "Fr", "Sa", "Su"
+        ][day];
+    }
+    
+    static CalendarDate = class {
+        constructor(calendar, date) {
+            this.calendar = calendar;
+            this.date = date;
+        }
+        
+        getDate() {
+            return this.date;
+        }
+        
+        isSelected() {
+            return this.calendar.state.selectedDate.getTime() === this.date.getTime();
+        }
+        
+        isCurrentDay() {
+            const current = new Date(Date.now());
+            current.setHours(0);
+            current.setMinutes(0);
+            current.setSeconds(0);
+            current.setMilliseconds(0);
+            
+            return this.date.getTime() === current.getTime();
+        }
+        
+        setStatusColor(color) {
+            this.statusColor = color;
+        }
+        
+        getStatusColor() {
+            return this.statusColor;
+        }
+        
+        getStyle() {
+            if (this.statusColor) {
+                return {
+                    textDecoration: "underline",
+                    textDecorationColor: this.statusColor
+                };
+            }
+            
+            return undefined;
+        }
+    };
 }
 
 export { Calendar };

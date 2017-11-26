@@ -2,13 +2,13 @@ class Locale {
     constructor(language, territory, variant) {
         if (!language) {
             this.language = "en";
-            this.territory = "uk";
+            this.territory = "UK";
             this.variant = undefined;
         } else {
             if (!language.match(/^[a-zA-Z]{2,3}$/)) {
                 const defaultLocale = Locale.getDefaultLocale();
                 this.language = defaultLocale.getLanguage();
-                this.territory = defaultLocale.geTerritory();
+                this.territory = defaultLocale.getTerritory();
                 this.variant = defaultLocale.getVariant();
                 return;
             }
@@ -49,7 +49,11 @@ class Locale {
     }
     
     static getDefaultLocale() {
-        return new Locale("en", "UK");
+        return Locale.defaultLocale || new Locale("en", "UK");
+    }
+    
+    static setDefaultLocale(locale) {
+        Locale.defaultLocale = locale;
     }
 }
 

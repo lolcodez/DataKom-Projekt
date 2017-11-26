@@ -3,40 +3,42 @@
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
+import { Locale } from "./lib/locale";
 import { Calendar } from "./components/Calendar.jsx";
+
+import { WSInterface } from "./lib/wsInterface";
+
+const ws = new WSInterface();
+
+Locale.setDefaultLocale(new Locale("sv", "SE"));
 
 class App extends React.Component {
     constructor(props) {
         super(props);
         
-        const date = new Date(Date.now());
-        
         this.state = {
-            date: date,
-            startOfWeek: undefined
+            date: new Date(Date.now())
         };
     }
     
     render() {
         return (
-            <div>
-                <Calendar year={ this.state.date.getFullYear() }
-                          month={ this.state.date.getMonth()+1 }
-                          startOfWeek={this.state.startOfWeek} />
-                <form onSubmit={ this.submitted.bind(this) }>
-                    <input type="text" defaultValue="Monday" />
-                    <input type="submit" />
-                </form>
-            </div>
+            <Calendar year={ this.state.date.getFullYear() }
+                      month={ this.state.date.getMonth()+1 }
+                      onDaySelected={ (date) => console.log(date) }
+                      transformDate={ (calendarDate) => {
+                          const date = calendarDate.getDate();
+                          ws.send({
+                              request: "getAvailable",
+                              date: `${ date.getFullYear() }-${ date.getMonth()+1 }-${ date.getDate() }`
+                          },
+                          (msg) => {
+                              if (msg["available"] === false) {
+                                  calendarDate.setStatusColor("#FFA0A0");
+                              }
+                          });
+                      } } />
         );
-    }
-
-    submitted(event) {
-        event.preventDefault();
-        this.setState({
-            date: this.state.date,
-            startOfWeek: event.target.children[0].value
-        });
     }
 }
 
@@ -46,11 +48,3 @@ ReactDOM.render(
     app,
     document.getElementById('root')
 );
-
-const ws = new WebSocket(`ws://${ window.location.host }/ws`);
-
-ws.onmessage = (msg) => {
-    console.log(msg);
-};
-
-window.appComponent = app;
