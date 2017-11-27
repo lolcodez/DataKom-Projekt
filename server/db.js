@@ -9,7 +9,27 @@ module.exports = async function() {
     let bookingsCollection = await db.createCollection("bookings");
 
     let adminCollection = await db.createCollection("admins");
-
+    
+    let daysCollection = await db.createCollection("days");
+    
+    // end --- Create/get collections
+    
+    // start --- Create indexes
+    
+    if (!await daysCollection.indexExists("date_ttl")) {
+        await daysCollection.createIndex({
+            "date": 1
+        }, {
+            name: "date_ttl",
+            unique: true,
+            expireAfterSeconds: 60 * 60 * 24 * 14
+        });
+    }
+    
+    // end --- Create indexes
+    
+    // start --- DB Functions
+    
     async function addAdmin(name, password) {
         return await adminCollection
             .insertOne({
@@ -27,7 +47,7 @@ module.exports = async function() {
 
         const passwordDigest = crypto
             .createHmac("sha256", salt)
-            .update(password)
+            .update(newPassword)
             .digest("hex");
 
         return await adminCollection.updateOne(
@@ -41,29 +61,6 @@ module.exports = async function() {
                 },
             }
         );
-    }
-    async function removeBooking(id) {
-        var myquery = { _id: ObjectID(id) };
-        db.collection("bookings").remove(myquery);
-        //om status på den dagen är full behöver detta ändras
-    }
-
-    async function changeBooking(id, type, value) {
-        var myquery = { _id: ObjectID(id) };
-        var newvalues = { $set: { type: value } };
-        db.collection("bookings").updateOne(myquery, newvalues);
-    }
-
-    async function getBookingsOnDate(date_) {
-        db.collection("bookings").find({ date: date_ });
-    }
-
-    async function getStatus(date_) {
-        //Är dagen full? True/False
-    }
-
-    async function markDayAsFull(date_) {
-        //Markera hela dagen som full
     }
 
     async function addBooking(name, email, time, date, numPeople, text) {
@@ -80,6 +77,47 @@ module.exports = async function() {
         });
     }
 
+    async function changeBookingStatus(id, status) {
+        bookingsCollection.updateOne({
+            _id: ObjectID(id)
+        }, {
+            $set: {
+                status: status
+            }
+        });
+    }
+    
+    async function removeBooking(id) {
+        bookingsCollection.remove({ _id: ObjectID(id) });
+        //om status på den dagen är full behöver detta ändras
+    }
+
+    async function getBookingsOnDate(date) {
+        return bookingsCollection.find({ date: date });
+    }
+
+    async function dayAvailable(date) {
+        let result = await daysCollection.find({
+            date: date
+        });
+
+        if (await result.count() < 1) {
+            return true;
+        }
+
+        return !(await result.next()).full;
+    }
+
+    async function markDayAsFull(date, full = true) {
+        daysCollection.updateOne({
+            date: date
+        }, {
+            $set: {
+                full: full
+            }
+        });
+    }
+
     if ((await adminCollection.find({ name: config.defaultAdminUsername })).count() < 1) {
         addAdmin(config.defaultAdminUsername, config.defaultAdminPassword);
     }
@@ -88,10 +126,16 @@ module.exports = async function() {
         addAdmin: addAdmin,
         changeAdminPassword: changeAdminPassword,
         addBooking: addBooking,
+        changeBookingStatus: changeBookingStatus,
+        removeBooking: removeBooking,
+        getBookingsOnDate: getBookingsOnDate,
+        dayAvailable: dayAvailable,
+        markDayAsFull: markDayAsFull,
         debug: {
             db: db,
             bookings: bookingsCollection,
             admins: adminCollection,
-        },
+            days: daysCollection
+        }
     };
 };
