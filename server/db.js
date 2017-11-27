@@ -18,10 +18,11 @@ module.exports = async function() {
     
     // start --- Create indexes
     
-    if ((await daysCollection.listIndexes().toArray()).filter(index => index.key["date"]).length === 0) {
+    if (!await daysCollection.indexExists("date_ttl")) {
         await daysCollection.createIndex({
             "date": 1
         }, {
+            name: "date_ttl",
             unique: true,
             expireAfterSeconds: 60 * 60 * 24 * 14
         });
